@@ -69,8 +69,7 @@ class AcceptTestCase(unittest.TestCase):
 
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
-            resp = app.make_response((str(data), status_code, headers))
-            return resp
+            return app.make_response((str(data), status_code, headers))
 
         api.add_resource(Foo, '/')
 
@@ -109,8 +108,7 @@ class AcceptTestCase(unittest.TestCase):
 
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
-            resp = app.make_response((str(data), status_code, headers))
-            return resp
+            return app.make_response((str(data), status_code, headers))
 
         api.add_resource(Foo, '/')
 
@@ -132,8 +130,7 @@ class AcceptTestCase(unittest.TestCase):
 
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
-            resp = app.make_response((str(data), status_code, headers))
-            return resp
+            return app.make_response((str(data), status_code, headers))
 
         api.add_resource(Foo, '/')
 
@@ -173,8 +170,7 @@ class AcceptTestCase(unittest.TestCase):
 
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
-            resp = app.make_response((str(data), status_code, headers))
-            return resp
+            return app.make_response((str(data), status_code, headers))
 
         api.add_resource(Foo, '/')
 
@@ -195,8 +191,7 @@ class AcceptTestCase(unittest.TestCase):
         @api.representation('text/html')
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
-            resp = app.make_response((str(data), status_code, headers))
-            return resp
+            return app.make_response((str(data), status_code, headers))
 
         api.add_resource(Foo, '/')
 

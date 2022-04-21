@@ -80,7 +80,7 @@ class Api(object):
         self.urls = {}
         self.prefix = prefix
         self.default_mediatype = default_mediatype
-        self.decorators = decorators if decorators else []
+        self.decorators = decorators or []
         self.catch_all_404s = catch_all_404s
         self.serve_challenge_on_401 = serve_challenge_on_401
         self.url_part_order = url_part_order
@@ -159,8 +159,13 @@ class Api(object):
         defaults = blueprint_setup.url_defaults
         if 'defaults' in options:
             defaults = dict(defaults, **options.pop('defaults'))
-        blueprint_setup.app.add_url_rule(rule, '%s.%s' % (blueprint_setup.blueprint.name, endpoint),
-                                         view_func, defaults=defaults, **options)
+        blueprint_setup.app.add_url_rule(
+            rule,
+            f'{blueprint_setup.blueprint.name}.{endpoint}',
+            view_func,
+            defaults=defaults,
+            **options,
+        )
 
     def _deferred_blueprint_init(self, setup_state):
         """Synchronize prefix between blueprint/api and registration options, then
@@ -209,7 +214,7 @@ class Api(object):
 
         if self.blueprint:
             if endpoint.startswith(self.blueprint.name):
-                endpoint = endpoint.split(self.blueprint.name + '.', 1)[-1]
+                endpoint = endpoint.split(f'{self.blueprint.name}.', 1)[-1]
             else:
                 return False
         return endpoint in self.endpoints
@@ -234,9 +239,6 @@ class Api(object):
             return self.owns_endpoint(rule.endpoint)
         except NotFound:
             return self.catch_all_404s
-        except:
-            # Werkzeug throws other kinds of exceptions, such as Redirect
-            pass
 
     def _has_fr_route(self):
         """Encapsulating the rules for whether the request was to a Flask endpoint"""
@@ -327,7 +329,7 @@ class Api(object):
         if error_cls_name in self.errors:
             custom_data = self.errors.get(error_cls_name, {})
             code = custom_data.get('status', 500)
-            data.update(custom_data)
+            data |= custom_data
 
         if code == 406 and self.default_mediatype is None:
             # if we are handling NotAcceptable (406), make sure that
@@ -424,7 +426,10 @@ class Api(object):
 
             # if you override the endpoint with a different class, avoid the collision by raising an exception
             if previous_view_class != resource:
-                raise ValueError('This endpoint (%s) is already set to the class %s.' % (endpoint, previous_view_class.__name__))
+                raise ValueError(
+                    f'This endpoint ({endpoint}) is already set to the class {previous_view_class.__name__}.'
+                )
+
 
         resource.mediatypes = self.mediatypes_method()  # Hacky
         resource.endpoint = endpoint
@@ -621,9 +626,7 @@ def marshal(data, fields, envelope=None):
     """
 
     def make(cls):
-        if isinstance(cls, type):
-            return cls()
-        return cls
+        return cls() if isinstance(cls, type) else cls
 
     if isinstance(data, (list, tuple)):
         return (OrderedDict([(envelope, [marshal(d, fields) for d in data])])
@@ -672,11 +675,10 @@ class marshal_with(object):
         @wraps(f)
         def wrapper(*args, **kwargs):
             resp = f(*args, **kwargs)
-            if isinstance(resp, tuple):
-                data, code, headers = unpack(resp)
-                return marshal(data, self.fields, self.envelope), code, headers
-            else:
+            if not isinstance(resp, tuple):
                 return marshal(resp, self.fields, self.envelope)
+            data, code, headers = unpack(resp)
+            return marshal(data, self.fields, self.envelope), code, headers
         return wrapper
 
 
@@ -698,10 +700,7 @@ class marshal_with_field(object):
         """
         :param field: a single field with which to marshal the output.
         """
-        if isinstance(field, type):
-            self.field = field()
-        else:
-            self.field = field
+        self.field = field() if isinstance(field, type) else field
 
     def __call__(self, f):
         @wraps(f)

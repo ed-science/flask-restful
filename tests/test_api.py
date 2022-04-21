@@ -785,7 +785,7 @@ class APITestCase(unittest.TestCase):
         self.assertEqual(resp.content_type, api.default_mediatype)
         # Allow can be of the form 'GET, PUT, POST'
         allow = ', '.join(set(resp.headers.get_all('Allow')))
-        allow = set(method.strip() for method in allow.split(','))
+        allow = {method.strip() for method in allow.split(',')}
         self.assertEqual(allow,
                           {'HEAD', 'OPTIONS'}.union(HelloWorld.methods))
 

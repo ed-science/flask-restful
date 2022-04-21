@@ -169,10 +169,10 @@ class List(Raw):
             if not issubclass(cls_or_instance, Raw):
                 raise MarshallingException(error_msg)
             self.container = cls_or_instance()
-        else:
-            if not isinstance(cls_or_instance, Raw):
-                raise MarshallingException(error_msg)
+        elif isinstance(cls_or_instance, Raw):
             self.container = cls_or_instance
+        else:
+            raise MarshallingException(error_msg)
 
     def format(self, value):
         # Convert all instances in typed list to container type
@@ -180,13 +180,22 @@ class List(Raw):
             value = list(value)
 
         return [
-            self.container.output(idx,
-                val if (isinstance(val, dict)
-                        or (self.container.attribute
-                            and hasattr(val, self.container.attribute)))
-                        and not isinstance(self.container, Nested)
-                        and not type(self.container) is Raw
-                    else value)
+            self.container.output(
+                idx,
+                val
+                if (
+                    (
+                        isinstance(val, dict)
+                        or (
+                            self.container.attribute
+                            and hasattr(val, self.container.attribute)
+                        )
+                    )
+                )
+                and not isinstance(self.container, Nested)
+                and type(self.container) is not Raw
+                else value,
+            )
             for idx, val in enumerate(value)
         ]
 
@@ -226,9 +235,7 @@ class Integer(Raw):
 
     def format(self, value):
         try:
-            if value is None:
-                return self.default
-            return int(value)
+            return self.default if value is None else int(value)
         except ValueError as ve:
             raise MarshallingException(ve)
 
@@ -358,9 +365,7 @@ class DateTime(Raw):
             elif self.dt_format == 'iso8601':
                 return _iso8601(value)
             else:
-                raise MarshallingException(
-                    'Unsupported date format %s' % self.dt_format
-                )
+                raise MarshallingException(f'Unsupported date format {self.dt_format}')
         except AttributeError as ae:
             raise MarshallingException(ae)
 

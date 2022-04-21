@@ -34,7 +34,7 @@ def url(value):
     """
     if not url_regex.search(value):
         message = u"{0} is not a valid URL".format(value)
-        if url_regex.search('http://' + value):
+        if url_regex.search(f'http://{value}'):
             message += u". Did you mean: http://{0}".format(value)
         raise ValueError(message)
     return value
@@ -186,8 +186,7 @@ def iso8601interval(value, argument='argument'):
 
 def date(value):
     """Parse a valid looking date in the format YYYY-mm-dd"""
-    date = datetime.strptime(value, "%Y-%m-%d")
-    return date
+    return datetime.strptime(value, "%Y-%m-%d")
 
 
 def _get_integer(value):

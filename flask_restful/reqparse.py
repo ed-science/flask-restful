@@ -94,7 +94,7 @@ class Argument(object):
 
     def __str__(self):
         if len(self.choices) > 5:
-            choices = self.choices[0:3]
+            choices = self.choices[:3]
             choices.append('...')
             choices.append(self.choices[-1])
         else:
@@ -185,8 +185,6 @@ class Argument(object):
 
         results = []
 
-        # Sentinels
-        _not_found = False
         _found = True
 
         for operator in self.operators:
@@ -246,6 +244,8 @@ class Argument(object):
             self.handle_validation_error(ValueError(error_msg), bundle_errors)
 
         if not results:
+            # Sentinels
+            _not_found = False
             if callable(self.default):
                 return self.default(), _not_found
             else:
@@ -327,7 +327,7 @@ class RequestParser(object):
         for arg in self.args:
             value, found = arg.parse(req, self.bundle_errors)
             if isinstance(value, ValueError):
-                errors.update(found)
+                errors |= found
                 found = None
             if found or arg.store_missing:
                 namespace[arg.dest or arg.name] = value
@@ -335,8 +335,10 @@ class RequestParser(object):
             flask_restful.abort(http_error_code, message=errors)
 
         if strict and req.unparsed_arguments:
-            raise exceptions.BadRequest('Unknown arguments: %s'
-                                        % ', '.join(req.unparsed_arguments.keys()))
+            raise exceptions.BadRequest(
+                f"Unknown arguments: {', '.join(req.unparsed_arguments.keys())}"
+            )
+
 
         return namespace
 

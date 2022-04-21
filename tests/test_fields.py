@@ -169,7 +169,7 @@ class FieldsTestCase(unittest.TestCase):
     def test_string_with_partial(self):
 
         def f(x, suffix):
-            return "%s-%s" % (x.hey, suffix)
+            return f"{x.hey}-{suffix}"
 
         p = partial(f, suffix="whatever")
         field = fields.String(attribute=p)
@@ -410,9 +410,9 @@ class FieldsTestCase(unittest.TestCase):
         self.assertEqual(['a', 'b', 'c'], field.output('list', obj))
 
     def test_list_from_set(self):
-        obj = {'list': set(['a', 'b', 'c'])}
+        obj = {'list': {'a', 'b', 'c'}}
         field = fields.List(fields.String)
-        self.assertEqual(set(['a', 'b', 'c']), set(field.output('list', obj)))
+        self.assertEqual({'a', 'b', 'c'}, set(field.output('list', obj)))
 
     def test_list_from_object(self):
         class TestObject(object):
